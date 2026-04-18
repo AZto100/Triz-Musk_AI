@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRIZ × Musk + Duck.ai Strategist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .title-font { font-family: 'Space Grotesk', sans-serif; }
+        
+        .workflow-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 255 157 / 0.1);
+        }
+        
+        .duck-response {
+            animation: fadeIn 0.6s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen">
+
+<div class="max-w-screen-2xl mx-auto px-8 py-10">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-12">
+        <div class="flex items-center gap-x-4">
+            <div class="w-11 h-11 bg-emerald-500 rounded-2xl flex items-center justify-center text-3xl">⚡️</div>
+            <div>
+                <h1 class="title-font text-4xl tracking-tighter">TRIZ × Musk</h1>
+                <p class="text-emerald-400 text-sm">Hybrid Strategist + Duck.ai (via Proxy)</p>
+            </div>
+        </div>
+        <div class="text-xs bg-zinc-900 border border-emerald-400/30 px-4 py-2 rounded-3xl flex items-center gap-x-2">
+            <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            PROXY ENABLED
+        </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="bg-zinc-900 rounded-3xl p-8 border border-white/10 mb-10">
+        <textarea id="problem-input" rows="5"
+                  class="w-full bg-zinc-950 border border-white/10 focus:border-emerald-400 rounded-3xl px-7 py-6 text-lg placeholder:text-zinc-500 focus:outline-none resize-none"
+                  placeholder="Describe your problem or innovation challenge...&#10;e.g. How can we reduce Starship production cost by 10x while increasing safety?"></textarea>
+
+        <div class="flex gap-4 mt-8">
+            <button onclick="generateStaticWorkflows()" 
+                    class="flex-1 py-5 bg-white text-black font-semibold rounded-3xl hover:bg-emerald-400 transition-all">
+                Generate 5 TRIZ × Musk Workflows
+            </button>
+            
+            <button onclick="generateWithDuckAI()" 
+                    class="flex-1 py-5 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold rounded-3xl transition-all flex items-center justify-center gap-3">
+                <i class="fas fa-robot"></i>
+                Get Real Duck.ai Answer (via Proxy)
+            </button>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div id="results-screen" class="hidden">
+        
+        <!-- Static Workflows -->
+        <div id="static-workflows" class="mb-16"></div>
+
+        <!-- Duck.ai Real Response -->
+        <div class="border-t border-white/10 pt-12">
+            <h2 class="flex items-center gap-3 text-2xl font-medium mb-6">
+                <i class="fas fa-brain text-emerald-400"></i>
+                Duck.ai Real-Time Strategy
+            </h2>
+            <div id="duck-response" 
+                 class="bg-zinc-900 border border-white/10 rounded-3xl p-8 min-h-[300px] text-zinc-300 duck-response leading-relaxed">
+                Click the button above to generate a live AI-powered strategy using Duck.ai (Claude / GPT-4o-mini etc.)
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+// CHANGE THIS TO YOUR RENDER PROXY URL
+const PROXY_URL = "https://triz-musk-ai-proxy.onrender.com";   // ←←← UPDATE THIS
+
+const workflows = [
+    { num: "01", icon: "⚛️", title: "Fundamentals & Ideal Outcome", musk: "First Principles", desc: "Boil problem to physics + define Ideal Final Result" },
+    { num: "02", icon: "🔥", title: "Contradiction Crusher", musk: "Remove Constraints", desc: "Identify and resolve core contradictions" },
+    { num: "03", icon: "💡", title: "Inventive Principle Power-Up", musk: "Multidisciplinary", desc: "Apply relevant TRIZ 40 principles creatively" },
+    { num: "04", icon: "📈", title: "Evolution & Future-Proofing", musk: "10× Thinking", desc: "Map technical evolution and long-term impact" },
+    { num: "05", icon: "🚀", title: "High-Agency Iteration & Scaling", musk: "Fail Fast + Vertical Integration", desc: "Rapid execution and scaling plan" }
+];
+
+function generateStaticWorkflows() {
+    const problem = document.getElementById('problem-input').value.trim();
+    if (!problem) return alert("Please describe your problem first.");
+
+    let html = `<h2 class="text-2xl mb-8">TRIZ × Musk Structured Workflows</h2>`;
+    
+    workflows.forEach(w => {
+        html += `
+        <div class="workflow-card bg-zinc-900 border border-white/10 rounded-3xl p-7 mb-6">
+            <div class="flex gap-6">
+                <div class="text-5xl flex-shrink-0">${w.icon}</div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-baseline">
+                        <span class="font-mono text-emerald-400 text-lg">${w.num}</span>
+                        <span class="text-xs uppercase bg-zinc-800 px-4 py-1 rounded-3xl">${w.musk}</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mt-1">${w.title}</h3>
+                    <p class="text-zinc-400 mt-3">${w.desc}</p>
+                    <p class="mt-4 text-sm italic text-zinc-500">"${problem}"</p>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    document.getElementById('static-workflows').innerHTML = html;
+    document.getElementById('results-screen').classList.remove('hidden');
+}
+
+async function generateWithDuckAI() {
+    const problem = document.getElementById('problem-input').value.trim();
+    if (!problem) return alert("Please describe your problem first.");
+
+    const responseDiv = document.getElementById('duck-response');
+    responseDiv.innerHTML = `<div class="flex items-center gap-3 text-emerald-400"><i class="fas fa-spinner fa-spin"></i> Sending request to Duck.ai via your Render proxy...</div>`;
+
+    document.getElementById('results-screen').classList.remove('hidden');
+
+    const systemPrompt = `You are an elite innovation strategist that combines TRIZ (40 Inventive Principles, contradiction resolution, Ideal Final Result, laws of technical evolution) with Elon Musk's core philosophies: first-principles thinking, questioning every assumption, rapid iteration & fail-fast, 10× improvement, vertical integration, and long-term multi-planetary civilization scale thinking.
+
+Structure your complete response exactly using these 5 sections:
+1. Fundamentals & Ideal Outcome
+2. Contradiction Crusher
+3. Inventive Principle Power-Up
+4. Evolution & Future-Proofing
+5. High-Agency Iteration & Scaling
+
+Be bold, concrete, practical, and ambitious. Use SpaceX/Tesla/Neuralink-style examples where helpful.`;
+
+    try {
+        const res = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: "claude-3-haiku",   // Change to "gpt-4o-mini", "llama", etc. if your proxy supports it
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: `Problem: ${problem}` }
+                ]
+            })
+        });
+
+        if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
+
+        const data = await res.json();
+        const answer = data.message || data.response || data.answer || JSON.stringify(data);
+
+        responseDiv.innerHTML = `<div class="prose prose-invert max-w-none">${answer.replace(/\n/g, '<br>')}</div>`;
+        
+    } catch (err) {
+        console.error(err);
+        responseDiv.innerHTML = `
+            <div class="text-rose-400">
+                <p>Failed to connect to Duck.ai via proxy.</p>
+                <p class="text-sm mt-3">Possible reasons:</p>
+                <ul class="text-sm list-disc pl-5 mt-2 space-y-1">
+                    <li>Proxy URL is incorrect (update PROXY_URL in the code)</li>
+                    <li>Render service is spun down (wait 30-60s and try again)</li>
+                    <li>Free tier limit reached</li>
+                </ul>
+                <p class="mt-4 text-xs">Tip: Open https://duck.ai manually and paste the prompt if needed.</p>
+            </div>`;
+    }
+}
+
+// Allow Ctrl/Cmd + Enter to generate with Duck.ai
+document.getElementById('problem-input').addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        generateWithDuckAI();
+    }
+});
+</script>
+
+</body>
+</html>

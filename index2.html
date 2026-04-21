@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRIZ × Musk + Duck.ai Strategist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .title-font { font-family: 'Space Grotesk', sans-serif; }
+
+        .workflow-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .workflow-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 255 157 / 0.08);
+        }
+
+        .duck-response {
+            animation: fadeIn 0.35s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .expand-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+        }
+
+        .expand-content.open {
+            max-height: 1200px;
+            opacity: 1;
+            margin-top: 1.25rem;
+        }
+
+        .chevron {
+            transition: transform 0.25s ease;
+        }
+
+        .chevron.rotate {
+            transform: rotate(180deg);
+        }
+
+        .prose-lite {
+            line-height: 1.75;
+        }
+
+        .prose-lite h1,
+        .prose-lite h2,
+        .prose-lite h3,
+        .prose-lite h4 {
+            color: white;
+            font-weight: 600;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .prose-lite ul,
+        .prose-lite ol {
+            padding-left: 1.25rem;
+            margin: 0.75rem 0;
+        }
+
+        .prose-lite li {
+            margin: 0.35rem 0;
+        }
+
+        .prose-lite strong {
+            color: white;
+        }
+
+        .prose-lite code {
+            background: rgba(255,255,255,0.08);
+            padding: 0.1rem 0.35rem;
+            border-radius: 0.4rem;
+            font-size: 0.92em;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen">
+
+<div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-10">
+        <div class="flex items-center gap-x-4">
+            <div class="w-11 h-11 bg-emerald-500 rounded-2xl flex items-center justify-center text-3xl">⚡️</div>
+            <div>
+                <h1 class="title-font text-3xl sm:text-4xl tracking-tighter">TRIZ × Musk</h1>
+                <p class="text-emerald-400 text-sm">Hybrid Strategist + Duck.ai (via Proxy)</p>
+            </div>
+        </div>
+        <div class="text-xs bg-zinc-900 border border-emerald-400/30 px-4 py-2 rounded-3xl flex items-center gap-x-2">
+            <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            PROXY ENABLED
+        </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="bg-zinc-900 rounded-3xl p-5 sm:p-8 border border-white/10 mb-10">
+        <textarea id="problem-input" rows="5"
+                  class="w-full bg-zinc-950 border border-white/10 focus:border-emerald-400 rounded-3xl px-5 sm:px-7 py-5 sm:py-6 text-base sm:text-lg placeholder:text-zinc-500 focus:outline-none resize-none"
+                  placeholder="Describe your problem or innovation challenge...&#10;e.g. How can we reduce Starship production cost by 10x while increasing safety?"></textarea>
+
+        <div class="flex gap-4 mt-6 sm:mt-8">
+            <button onclick="generateStaticWorkflows()"
+                    class="w-full py-4 sm:py-5 bg-white text-black font-semibold rounded-3xl hover:bg-emerald-400 transition-all">
+                Generate 5 TRIZ × Musk Workflows
+            </button>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div id="results-screen" class="hidden">
+        <div id="static-workflows" class="mb-10"></div>
+    </div>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+// CHANGE THIS TO YOUR RENDER PROXY URL
+const PROXY_URL = "https://triz-musk-ai-proxy.onrender.com";
+
+const workflows = [
+    {
+        id: "step-1",
+        num: "01",
+        icon: "⚛️",
+        title: "Fundamentals & Ideal Outcome",
+        musk: "First Principles",
+        desc: "Boil problem to physics + define Ideal Final Result",
+        focus: "Break the problem into fundamental truths, isolate assumptions, define the Ideal Final Result, and identify what must be true for breakthrough success.",
+        promptInstruction: `
+You are working on ONLY SECTION 1: Fundamentals & Ideal Outcome.
+
+Your job:
+- Strip the problem down to first principles
+- Separate facts from assumptions
+- Define the Ideal Final Result (IFR)
+- Clarify the core engineering/business objective
+- Identify the most important variables, constraints, and unknowns
+
+Output format:
+1. First-principles breakdown
+2. Hidden assumptions to challenge
+3. Ideal final result
+4. Critical variables / bottlenecks
+5. Sharp next question to investigate
+
+Keep it practical, bold, and decision-useful.`
+    },
+    {
+        id: "step-2",
+        num: "02",
+        icon: "🔥",
+        title: "Contradiction Crusher",
+        musk: "Remove Constraints",
+        desc: "Identify and resolve core contradictions",
+        focus: "Identify the core technical or business contradictions and propose ways to eliminate or bypass them instead of accepting trade-offs.",
+        promptInstruction: `
+You are working on ONLY SECTION 2: Contradiction Crusher.
+
+Your job:
+- Identify the core contradiction(s)
+- State what improves and what worsens
+- Use TRIZ-style contradiction thinking
+- Propose ways to eliminate, separate, bypass, or invert the contradiction
+- Challenge fake constraints and legacy assumptions
+
+Output format:
+1. Main contradiction
+2. Secondary contradictions
+3. Which constraints are real vs assumed
+4. Contradiction-busting solution options
+5. Best contradiction to attack first
+
+Be concrete and specific.`
+    },
+    {
+        id: "step-3",
+        num: "03",
+        icon: "💡",
+        title: "Inventive Principle Power-Up",
+        musk: "Multidisciplinary",
+        desc: "Apply relevant TRIZ 40 principles creatively",
+        focus: "Apply the most relevant TRIZ inventive principles and multidisciplinary analogies to generate strong solution concepts.",
+        promptInstruction: `
+You are working on ONLY SECTION 3: Inventive Principle Power-Up.
+
+Your job:
+- Select the most relevant TRIZ inventive principles
+- Explain why each principle fits
+- Translate each principle into concrete solution ideas
+- Bring in cross-domain analogies from engineering, software, manufacturing, biology, aerospace, or other useful fields
+
+Output format:
+1. Top 3-5 relevant inventive principles
+2. Why each principle fits this problem
+3. Concrete solution concepts from each principle
+4. Cross-domain inspiration
+5. Most promising concept to prototype
+
+Avoid generic brainstorming.`
+    },
+    {
+        id: "step-4",
+        num: "04",
+        icon: "📈",
+        title: "Evolution & Future-Proofing",
+        musk: "10× Thinking",
+        desc: "Map technical evolution and long-term impact",
+        focus: "Map likely system evolution, identify the next-stage architecture, and frame what a 10× better future state would look like.",
+        promptInstruction: `
+You are working on ONLY SECTION 4: Evolution & Future-Proofing.
+
+Your job:
+- Apply TRIZ laws/patterns of technical evolution where relevant
+- Describe how this system is likely to evolve
+- Identify what a 10x improvement would require
+- Highlight future risks, lock-ins, and opportunities
+- Recommend a future-proof direction
+
+Output format:
+1. Current system maturity / pattern
+2. Likely evolution path
+3. What 10x better would mean
+4. Future risks and lock-ins
+5. Future-proof recommendation
+
+Think strategically and long-term.`
+    },
+    {
+        id: "step-5",
+        num: "05",
+        icon: "🚀",
+        title: "High-Agency Iteration & Scaling",
+        musk: "Fail Fast + Vertical Integration",
+        desc: "Rapid execution and scaling plan",
+        focus: "Convert the idea into an action plan with fast experiments, learning loops, ownership, and a scaling roadmap.",
+        promptInstruction: `
+You are working on ONLY SECTION 5: High-Agency Iteration & Scaling.
+
+Your job:
+- Turn the idea into an execution plan
+- Recommend rapid experiments and prototypes
+- Prioritize highest-learning actions
+- Define what should be vertically integrated, controlled, outsourced, or automated
+- Build a path from test to scaled rollout
+
+Output format:
+1. Immediate experiments
+2. Fastest validation path
+3. Key metrics / pass-fail criteria
+4. Scaling and integration logic
+5. 30-day action plan
+
+Bias toward action and momentum.`
+    }
+];
+
+// In-memory cache so each step can keep its own response for the current problem text
+const aiResponseCache = {};
+
+function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, function(match) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+        return map[match];
+    });
+}
+
+function nl2brSafe(text) {
+    return escapeHtml(text).replace(/\n/g, '<br>');
+}
+
+function simpleMarkdownToHtml(text) {
+    let html = escapeHtml(text);
+
+    // Headings like "1. Title" or "## Title"
+    html = html.replace(/^##\s+(.*)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^###\s+(.*)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^(\d+)\.\s+\*\*(.*?)\*\*$/gm, '<h3>$1. $2</h3>');
+    html = html.replace(/^(\d+)\.\s+(.*)$/gm, '<h3>$1. $2</h3>');
+
+    // Bold
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // Bullet lists
+    html = html.replace(/(?:^|\n)-\s+(.*?)(?=\n|$)/g, '\n<li>$1</li>');
+    html = html.replace(/(?:^|\n)\*\s+(.*?)(?=\n|$)/g, '\n<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+    html = html.replace(/<\/ul>\s*<ul>/g, '');
+
+    // Paragraphs / line breaks
+    html = html.split(/\n{2,}/).map(block => {
+        if (
+            block.startsWith('<h3>') ||
+            block.startsWith('<h4>') ||
+            block.startsWith('<ul>')
+        ) return block;
+        return `<p>${block.replace(/\n/g, '<br>')}</p>`;
+    }).join('');
+
+    return `<div class="prose-lite">${html}</div>`;
+}
+
+function generateStaticWorkflows() {
+    const problem = document.getElementById('problem-input').value.trim();
+    if (!problem) return alert("Please describe your problem first.");
+
+    // Clear cache if problem changed
+    const currentProblemKey = problem;
+    workflows.forEach(w => {
+        const cacheKey = `${currentProblemKey}__${w.id}`;
+        if (!(cacheKey in aiResponseCache)) {
+            // leave empty unless already cached
+        }
+    });
+
+    let html = `
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold">TRIZ × Musk Structured Workflows</h2>
+            <p class="text-zinc-400 mt-2">Expand any step and click its AI button to get focused Duck.ai feedback for that specific section.</p>
+        </div>
+    `;
+
+    workflows.forEach((w, idx) => {
+        html += `
+        <div class="workflow-card bg-zinc-900 border border-white/10 rounded-3xl p-5 sm:p-7 mb-6" id="${w.id}">
+            <div class="flex gap-4 sm:gap-6">
+                <div class="text-4xl sm:text-5xl flex-shrink-0">${w.icon}</div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-baseline gap-3 flex-wrap">
+                        <span class="font-mono text-emerald-400 text-lg">${w.num}</span>
+                        <span class="text-[11px] sm:text-xs uppercase bg-zinc-800 px-4 py-1 rounded-3xl">${w.musk}</span>
+                    </div>
+
+                    <h3 class="text-xl font-semibold mt-1">${w.title}</h3>
+                    <p class="text-zinc-400 mt-3">${w.desc}</p>
+                    <p class="mt-4 text-sm italic text-zinc-500">"${escapeHtml(problem)}"</p>
+
+                    <div class="mt-5 flex flex-wrap gap-3">
+                        <button onclick="toggleStep('${w.id}', this)"
+                                class="px-5 py-3 bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-2xl text-sm font-medium flex items-center gap-2 transition-all">
+                            <span>Expand step</span>
+                            <i class="fas fa-chevron-down chevron"></i>
+                        </button>
+                    </div>
+
+                    <div id="${w.id}-content" class="expand-content">
+                        <div class="bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-6">
+                            <div class="grid gap-4">
+                                <div>
+                                    <div class="text-xs uppercase tracking-wide text-emerald-400 mb-2">Step focus</div>
+                                    <p class="text-zinc-300">${w.focus}</p>
+                                </div>
+
+                                <div class="flex flex-wrap gap-3 pt-2">
+                                    <button onclick="generateStepWithDuckAI('${w.id}')"
+                                            id="${w.id}-ai-btn"
+                                            class="px-5 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold rounded-2xl transition-all flex items-center justify-center gap-3">
+                                        <i class="fas fa-robot"></i>
+                                        Ask AI about this step
+                                    </button>
+
+                                    <button onclick="clearStepResponse('${w.id}')"
+                                            class="px-5 py-3 bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white font-medium rounded-2xl transition-all">
+                                        Clear feedback
+                                    </button>
+                                </div>
+
+                                <div id="${w.id}-response"
+                                     class="bg-zinc-900 border border-white/10 rounded-3xl p-5 sm:p-6 min-h-[140px] text-zinc-300 duck-response leading-relaxed">
+                                    Click <strong>Ask AI about this step</strong> to get focused Duck.ai feedback for <strong>${w.title}</strong>.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    document.getElementById('static-workflows').innerHTML = html;
+    document.getElementById('results-screen').classList.remove('hidden');
+}
+
+function toggleStep(stepId, btn) {
+    const content = document.getElementById(`${stepId}-content`);
+    const chevron = btn.querySelector('.chevron');
+    const isOpen = content.classList.contains('open');
+
+    if (isOpen) {
+        content.classList.remove('open');
+        chevron.classList.remove('rotate');
+        btn.querySelector('span').textContent = 'Expand step';
+    } else {
+        content.classList.add('open');
+        chevron.classList.add('rotate');
+        btn.querySelector('span').textContent = 'Collapse step';
+    }
+}
+
+function clearStepResponse(stepId) {
+    const responseDiv = document.getElementById(`${stepId}-response`);
+    const problem = document.getElementById('problem-input').value.trim();
+    const cacheKey = `${problem}__${stepId}`;
+    delete aiResponseCache[cacheKey];
+
+    const workflow = workflows.find(w => w.id === stepId);
+    responseDiv.innerHTML = `Click <strong>Ask AI about this step</strong> to get focused Duck.ai feedback for <strong>${workflow.title}</strong>.`;
+}
+
+async function generateStepWithDuckAI(stepId) {
+    const problem = document.getElementById('problem-input').value.trim();
+    if (!problem) return alert("Please describe your problem first.");
+
+    const workflow = workflows.find(w => w.id === stepId);
+    if (!workflow) return;
+
+    const responseDiv = document.getElementById(`${stepId}-response`);
+    const button = document.getElementById(`${stepId}-ai-btn`);
+    const cacheKey = `${problem}__${stepId}`;
+
+    // Use cached response for same problem + step
+    if (aiResponseCache[cacheKey]) {
+        responseDiv.innerHTML = aiResponseCache[cacheKey];
+        return;
+    }
+
+    button.disabled = true;
+    button.classList.add('opacity-70', 'cursor-not-allowed');
+
+    responseDiv.innerHTML = `
+        <div class="flex items-center gap-3 text-emerald-400">
+            <i class="fas fa-spinner fa-spin"></i>
+            Sending ${workflow.title} request to Duck.ai via your Render proxy...
+        </div>
+    `;
+
+    const systemPrompt = `
+You are an elite innovation strategist combining:
+- TRIZ (Ideal Final Result, contradictions, inventive principles, technical evolution)
+- Elon Musk-style thinking (first principles, remove assumptions, 10x improvement, rapid iteration, vertical integration, high agency)
+
+Important:
+- Respond ONLY for the requested single section
+- Do NOT provide the other 4 sections
+- Be concrete, practical, ambitious, and useful
+- Use short headings and crisp bullets where helpful
+- Make the advice specific to the user's problem
+`;
+
+    const userPrompt = `
+Problem:
+${problem}
+
+Requested section:
+${workflow.title}
+
+Section guidance:
+${workflow.promptInstruction}
+`;
+
+    try {
+        const res = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: "claude-3-haiku",
+                messages: [
+                    { role: "system", content: systemPrompt.trim() },
+                    { role: "user", content: userPrompt.trim() }
+                ]
+            })
+        });
+
+        if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
+
+        const data = await res.json();
+        const answer = data.message || data.response || data.answer || JSON.stringify(data, null, 2);
+
+        const formatted = simpleMarkdownToHtml(answer);
+        aiResponseCache[cacheKey] = formatted;
+        responseDiv.innerHTML = formatted;
+
+    } catch (err) {
+        console.error(err);
+        responseDiv.innerHTML = `
+            <div class="text-rose-400">
+                <p class="font-semibold">Failed to connect to Duck.ai via proxy for this step.</p>
+                <p class="text-sm mt-3">Possible reasons:</p>
+                <ul class="text-sm list-disc pl-5 mt-2 space-y-1">
+                    <li>Proxy URL is incorrect</li>
+                    <li>Render service is spun down</li>
+                    <li>Free-tier limit reached</li>
+                    <li>The proxy expects a slightly different request shape</li>
+                </ul>
+                <p class="mt-4 text-xs text-zinc-400">Step attempted: ${escapeHtml(workflow.title)}</p>
+            </div>
+        `;
+    } finally {
+        button.disabled = false;
+        button.classList.remove('opacity-70', 'cursor-not-allowed');
+    }
+}
+
+// Allow Ctrl/Cmd + Enter to generate workflows
+document.getElementById('problem-input').addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        generateStaticWorkflows();
+    }
+});
+</script>
+
+</body>
+</html>

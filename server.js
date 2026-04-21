@@ -25,11 +25,14 @@ app.post("/", async (req, res) => {
       });
     }
 
-    // Placeholder proxy response for testing Render deployment
+    // For now this returns the user prompt in a usable way for your frontend
+    const combined = messages
+      .map(m => `${m.role.toUpperCase()}:\n${m.content}`)
+      .join("\n\n");
+
     return res.status(200).json({
       ok: true,
-      message: `Proxy received request for model: ${model || "unspecified"}`,
-      response: messages.map(m => `[${m.role}] ${m.content}`).join("\n\n")
+      response: `AI proxy test successful.\n\nModel: ${model || "unspecified"}\n\n${combined}`
     });
   } catch (err) {
     console.error("POST / error:", err);

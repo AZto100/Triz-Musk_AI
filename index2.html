@@ -494,7 +494,7 @@ ${workflow.promptInstruction}
         if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
 
         const data = await res.json();
-        const answer = data.message || data.response || data.answer || JSON.stringify(data, null, 2);
+        const answer = data.response || data.answer || data.message || JSON.stringify(data, null, 2);
 
         const formatted = simpleMarkdownToHtml(answer);
         aiResponseCache[cacheKey] = formatted;
